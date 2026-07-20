@@ -1,0 +1,17 @@
+{
+  "name": "acme-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Acme: a small forecasting app. The product a demo help center is written about.",
+  "scripts": {
+    "start": "node server.ts",
+    "test": "playwright test"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

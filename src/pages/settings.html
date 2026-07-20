@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme — Settings</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    if (!localStorage.getItem('acme-authed')) location.replace('/login');
+  </script>
+</head>
+<body>
+  <header>
+    <span class="brand">Acme</span>
+    <a href="/dashboard">Forecast</a>
+    <a href="/settings" aria-current="page">Settings</a>
+  </header>
+  <main>
+    <h1>Settings</h1>
+    <section>
+      <h2>Notifications</h2>
+      <label class="row"><input type="checkbox" id="sample"> Show sample data</label>
+    </section>
+  </main>
+</body>
+</html>

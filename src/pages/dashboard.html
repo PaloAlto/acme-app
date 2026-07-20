@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme — Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    if (!localStorage.getItem('acme-authed')) location.replace('/login');
+  </script>
+</head>
+<body>
+  <header>
+    <span class="brand">Acme</span>
+    <a href="/dashboard" aria-current="page">Forecast</a>
+    <a href="/settings">Settings</a>
+  </header>
+  <main>
+    <h1>Dashboard</h1>
+    <section>
+      <h2>Revenue streams</h2>
+      <table>
+        <thead><tr><th>Stream</th><th class="num">Per month</th></tr></thead>
+        <tbody id="streams"></tbody>
+      </table>
+      <p><button id="add">Add revenue stream</button></p>
+    </section>
+    <dialog id="dlg" aria-labelledby="dlg-title">
+      <h2 id="dlg-title">Add revenue stream</h2>
+      <form id="stream" method="dialog">
+        <label for="name">Name</label>
+        <input id="name" type="text" required>
+        <label for="monthly">Per month</label>
+        <input id="monthly" type="text" inputmode="numeric" placeholder="0">
+        <p><button type="submit">Add stream</button></p>
+      </form>
+    </dialog>
+  </main>
+  <script>
+    const money = (n) => '$' + n.toLocaleString('en-US');
+    const load = () =>
+      fetch('/api/streams')
+        .then((r) => r.json())
+        .then((streams) => {
+          document.getElementById('streams').innerHTML = streams
+            .map((s) => `<tr><td>${s.name}</td><td class="num">${money(s.monthly)}</td></tr>`)
+            .join('');
+        });
+    load();
+    document.getElementById('add').addEventListener('click', () => {
+      document.getElementById('dlg').showModal();
+    });
+    document.getElementById('stream').addEventListener('submit', () => {
+      fetch('/api/streams', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('name').value,
+          monthly: Number(document.getElementById('monthly').value || 0),
+          pricing: 'unit',
+        }),
+      }).then(load);
+    });
+  </script>
+</body>
+</html>
