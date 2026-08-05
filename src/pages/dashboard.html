@@ -32,6 +32,12 @@
         <input id="name" type="text" required>
         <label for="monthly">Per month</label>
         <input id="monthly" type="text" inputmode="numeric" placeholder="0">
+      <fieldset>
+        <legend>Pricing model</legend>
+        <label><input type="radio" name="pricing" value="unit" checked> Unit sales</label>
+        <label><input type="radio" name="pricing" value="hours"> Billable hours</label>
+        <label><input type="radio" name="pricing" value="recurring"> Recurring revenue</label>
+      </fieldset>
         <p><button type="submit">Add stream</button></p>
       </form>
     </dialog>
@@ -57,7 +63,7 @@
         body: JSON.stringify({
           name: document.getElementById('name').value,
           monthly: Number(document.getElementById('monthly').value || 0),
-          pricing: 'unit',
+          pricing: document.querySelector('input[name=pricing]:checked').value,
         }),
       }).then(load);
     });

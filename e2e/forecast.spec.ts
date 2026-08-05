@@ -16,6 +16,7 @@ test('adds a revenue stream from the dialog', async ({ page }) => {
   await page.getByRole('button', { name: 'Add revenue stream' }).click();
   await page.getByLabel('Name').fill('Consulting');
   await page.getByLabel('Per month').fill('4000');
+  await page.getByLabel('Billable hours').check();
   await page.getByRole('button', { name: 'Add stream' }).click();
   await expect(page.getByRole('cell', { name: 'Consulting' })).toBeVisible();
 });
