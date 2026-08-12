@@ -7,5 +7,6 @@ test.beforeEach(async ({ page }) => {
 
 test('shows the notification switches', async ({ page }) => {
   await page.goto('/settings');
+  await expect(page.getByLabel('Email me a weekly summary')).toBeChecked();
   await expect(page.getByLabel('Show sample data')).not.toBeChecked();
 });
