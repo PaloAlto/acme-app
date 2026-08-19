@@ -15,14 +15,21 @@
       <label for="password">Password</label>
       <input id="password" type="password" autocomplete="current-password">
       <button type="submit">Log in</button>
-      <p id="error" class="error" hidden>Wrong password.</p>
+      <p id="error" class="error" hidden></p>
     </form>
   </main>
   <script>
+    const say = (message) => {
+      const error = document.getElementById('error');
+      error.textContent = message;
+      error.hidden = false;
+    };
     document.getElementById('login').addEventListener('submit', (e) => {
       e.preventDefault();
+      const email = document.getElementById('email').value;
       const pw = document.getElementById('password').value;
-      if (pw.length < 4) { document.getElementById('error').hidden = false; return; }
+      if (!email.includes('@')) { say('Enter the email address on your account.'); return; }
+      if (pw.length < 4) { say('Your password is at least four characters.'); return; }
       localStorage.setItem('acme-authed', '1');
       location.href = '/dashboard';
     });
