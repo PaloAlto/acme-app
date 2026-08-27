@@ -20,3 +20,12 @@ test('adds a revenue stream from the dialog', async ({ page }) => {
   await page.getByRole('button', { name: 'Add stream' }).click();
   await expect(page.getByRole('cell', { name: 'Consulting' })).toBeVisible();
 });
+
+test('removes a revenue stream', async ({ page }) => {
+  await page.goto('/dashboard');
+  await page
+    .getByRole('row', { name: /Retail/ })
+    .getByRole('button', { name: 'Remove' })
+    .click();
+  await expect(page.getByRole('cell', { name: 'Retail' })).toHaveCount(0);
+});

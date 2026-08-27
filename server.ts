@@ -64,6 +64,13 @@ const server = createServer(async (req, res) => {
     json(res, streams);
     return;
   }
+  const removing = /^\/api\/streams\/(\d+)$/.exec(url.pathname);
+  if (removing && req.method === 'DELETE') {
+    const at = streams.findIndex((s) => s.id === Number(removing[1]));
+    if (at >= 0) streams.splice(at, 1);
+    json(res, { ok: at >= 0 });
+    return;
+  }
   const route = routes.find((r) => r.path === url.pathname);
   if (!route) {
     res.writeHead(404, { 'content-type': 'text/plain' });

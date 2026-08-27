@@ -20,7 +20,7 @@
     <section>
       <h2>Revenue streams</h2>
       <table>
-        <thead><tr><th>Stream</th><th class="num">Per month</th></tr></thead>
+        <thead><tr><th>Stream</th><th class="num">Per month</th><th></th></tr></thead>
         <tbody id="streams"></tbody>
       </table>
       <p><button id="add">Add revenue stream</button></p>
@@ -49,7 +49,7 @@
         .then((r) => r.json())
         .then((streams) => {
           document.getElementById('streams').innerHTML = streams
-            .map((s) => `<tr><td>${s.name}</td><td class="num">${money(s.monthly)}</td></tr>`)
+            .map((s) => `<tr><td>${s.name}</td><td class="num">${money(s.monthly)}</td><td><button class="quiet" data-remove="${s.id}">Remove</button></td></tr>`)
             .join('');
         });
     load();
@@ -66,6 +66,10 @@
           pricing: document.querySelector('input[name=pricing]:checked').value,
         }),
       }).then(load);
+    });
+    document.getElementById('streams').addEventListener('click', (e) => {
+      const id = e.target.dataset.remove;
+      if (id) fetch('/api/streams/' + id, { method: 'DELETE' }).then(load);
     });
   </script>
 </body>
