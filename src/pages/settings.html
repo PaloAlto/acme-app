@@ -18,6 +18,17 @@
   <main>
     <h1>Settings</h1>
     <section>
+      <h2>Money</h2>
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option value="USD" selected>US dollar (USD)</option>
+        <option value="EUR">Euro (EUR)</option>
+        <option value="GBP">British pound (GBP)</option>
+        <option value="CAD">Canadian dollar (CAD)</option>
+      </select>
+      <p class="hint" style="font-size:0.85rem;color:var(--ink-2)">Every figure in the forecast shows in this currency.</p>
+    </section>
+    <section>
       <h2>Notifications</h2>
       <label class="row"><input type="checkbox" id="weekly" checked> Email me a weekly summary</label>
       <label class="row"><input type="checkbox" id="sample"> Show sample data</label>
