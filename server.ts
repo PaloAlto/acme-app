@@ -10,12 +10,14 @@ import { routes } from './src/routes.ts';
  * data lives in memory and comes back through /api. Sign-in is a mark in
  * the browser, so any email with any password of four characters gets in.
  *
- *   node server.ts            # http://127.0.0.1:8789
+ *   node server.ts                 # http://127.0.0.1:8789
  *   PORT=4000 node server.ts
+ *   HOST=0.0.0.0 node server.ts    # reachable from outside, as in the container
  */
 
 const root = dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT ?? 8789);
+const host = process.env.HOST ?? '127.0.0.1';
 
 type Stream = {
   id: number;
@@ -82,6 +84,6 @@ const server = createServer(async (req, res) => {
   res.end(html);
 });
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`acme: http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`acme: http://${host}:${port}`);
 });

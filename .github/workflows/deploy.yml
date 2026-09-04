@@ -1,0 +1,43 @@
+# A push to main ships Acme to Driftless's stage: the image to ECR, the
+# service rolled. The role comes from the Driftless stack's
+# acme_deploy_role_arn output, set as the AWS_DEPLOY_ROLE_ARN variable.
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER: driftless-stage
+      SERVICE: acme
+    steps:
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-west-2
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/driftless/acme:${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/driftless/acme:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Roll the service onto the new image
+        run: |
+          aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" \
+            --desired-count 1 --force-new-deployment > /dev/null
+          aws ecs wait services-stable --cluster "$CLUSTER" --services "$SERVICE"
+          echo "acme runs ${{ github.sha }}"

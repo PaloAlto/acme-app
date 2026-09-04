@@ -24,6 +24,15 @@ npx playwright install chromium
 npm test
 ```
 
+## Hosted
+
+Every push to `main` ships the app to Driftless's stage, at
+`https://acme.driftless.paloalto-dev.com`: the workflow in `.github`
+builds the image from the `Dockerfile` and rolls the `acme` service in
+that stack, through a role that can push this one image and roll this
+one service. Sign in there the same way; the data lives in the task's
+memory and resets when it restarts.
+
 ## Layout
 
 - `server.ts` serves the pages and a JSON API over in-memory data.
