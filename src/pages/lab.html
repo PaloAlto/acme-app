@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme — Test lab</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand">Acme</span><a href="/dashboard">Forecast</a
+      ><a href="/settings">Settings</a
+      ><a href="/lab" aria-current="page">Test lab</a>
+    </header>
+    <main>
+      <h1>Test lab</h1>
+      <p>
+        Set up a repeatable capture challenge. These controls affect only this
+        browser session. Fixture data expires after six hours of inactivity or a
+        server restart.
+      </p>
+      <section>
+        <h2>Capture challenges</h2>
+        <form id="challenges">
+          <label class="row"
+            ><input id="modal" type="checkbox" /> Announcement on the first
+            dashboard visit</label
+          >
+          <label for="delay">Data loading delay</label>
+          <select id="delay">
+            <option value="0">None</option>
+            <option value="1500">1.5 seconds</option>
+            <option value="5000">5 seconds</option>
+          </select>
+          <p>
+            <button>Apply challenges</button>
+            <button type="button" id="reset">Reset fixture data</button>
+          </p>
+        </form>
+        <p id="status" role="status"></p>
+        <p>
+          For a fresh capture browser, use this as the sign-in URL. Opening it
+          resets that browser’s fixture and arms the selected challenges.
+        </p>
+        <a id="launch" href="/lab/start">Launch capture scenario</a>
+        <p id="launch-url" style="overflow-wrap: anywhere"></p>
+      </section>
+      <section>
+        <h2>Product revision</h2>
+        <pre
+          id="version"
+          style="white-space: pre-wrap; overflow-wrap: anywhere"
+        ></pre>
+        <p>
+          Product changes and pushes run from the repository CLI:
+          <code>pnpm lab list</code>.
+        </p>
+      </section>
+    </main>
+    <script type="module">
+      const modal = document.getElementById("modal");
+      const delay = document.getElementById("delay");
+      const status = document.getElementById("status");
+      const link = () => {
+        const url = new URL("/lab/start", location.origin);
+        url.searchParams.set("modal", modal.checked ? "1" : "0");
+        url.searchParams.set("delay", delay.value);
+        document.getElementById("launch").href = url.href;
+        document.getElementById("launch-url").textContent = url.href;
+      };
+      const state = await fetch("/api/lab").then((r) => r.json());
+      modal.checked = state.modal;
+      if (![...delay.options].some((o) => o.value === String(state.delay)))
+        delay.add(
+          new Option(`${state.delay} milliseconds`, String(state.delay)),
+        );
+      delay.value = String(state.delay);
+      link();
+      document.getElementById("challenges").addEventListener("change", link);
+      document
+        .getElementById("challenges")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const result = await fetch("/api/lab", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              modal: modal.checked,
+              delay: Number(delay.value),
+            }),
+          });
+          status.textContent = result.ok
+            ? "Challenges applied. Open Forecast to try them."
+            : "Could not apply challenges.";
+        });
+      document.getElementById("reset").addEventListener("click", async () => {
+        const result = await fetch("/api/lab/reset", { method: "POST" });
+        status.textContent = result.ok
+          ? "Fixture reset; announcement rearmed. Challenge settings kept."
+          : "Could not reset fixture.";
+      });
+      document.getElementById("version").textContent = JSON.stringify(
+        await fetch("/api/version").then((r) => r.json()),
+        null,
+        2,
+      );
+    </script>
+  </body>
+</html>

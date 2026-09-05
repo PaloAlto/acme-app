@@ -1,1 +1,4 @@
-node_modules/\ntest-results/\n
+node_modules/
+test-results/
+playwright-report/
+.lab/

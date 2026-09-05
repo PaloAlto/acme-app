@@ -6,12 +6,17 @@
   "description": "Acme: a small forecasting app. The product a demo help center is written about.",
   "scripts": {
     "start": "node server.ts",
-    "test": "playwright test"
+    "lab": "node lab/cli.ts",
+    "test:unit": "node --test server.test.ts lab/cli.test.ts",
+    "test:e2e": "playwright test",
+    "test": "pnpm test:unit && pnpm test:e2e",
+    "check": "pnpm test"
   },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
-  }
+  },
+  "packageManager": "pnpm@10.32.1"
 }

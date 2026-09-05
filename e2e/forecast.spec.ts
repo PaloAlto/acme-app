@@ -13,7 +13,7 @@ test('lists the revenue streams', async ({ page }) => {
 
 test('adds a revenue stream from the dialog', async ({ page }) => {
   await page.goto('/dashboard');
-  await page.getByRole('button', { name: 'Add revenue stream' }).click();
+  await page.getByRole('button', { name: /^(Add|New) revenue stream$/ }).click();
   await page.getByLabel('Name').fill('Consulting');
   await page.getByLabel('Per month').fill('4000');
   await page.getByLabel('Billable hours').check();

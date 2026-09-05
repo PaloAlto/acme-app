@@ -1,76 +1,115 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Acme — Dashboard</title>
-  <link rel="stylesheet" href="/styles.css">
-  <script>
-    if (!localStorage.getItem('acme-authed')) location.replace('/login');
-  </script>
-</head>
-<body>
-  <header>
-    <span class="brand">Acme</span>
-    <a href="/dashboard" aria-current="page">Forecast</a>
-    <a href="/settings">Settings</a>
-  </header>
-  <main>
-    <h1>Dashboard</h1>
-    <section>
-      <h2>Revenue streams</h2>
-      <table>
-        <thead><tr><th>Stream</th><th class="num">Per month</th><th></th></tr></thead>
-        <tbody id="streams"></tbody>
-      </table>
-      <p><button id="add">Add revenue stream</button></p>
-    </section>
-    <dialog id="dlg" aria-labelledby="dlg-title">
-      <h2 id="dlg-title">Add revenue stream</h2>
-      <form id="stream" method="dialog">
-        <label for="name">Name</label>
-        <input id="name" type="text" required>
-        <label for="monthly">Per month</label>
-        <input id="monthly" type="text" inputmode="numeric" placeholder="0">
-      <fieldset>
-        <legend>Pricing model</legend>
-        <label><input type="radio" name="pricing" value="unit" checked> Unit sales</label>
-        <label><input type="radio" name="pricing" value="hours"> Billable hours</label>
-        <label><input type="radio" name="pricing" value="recurring"> Recurring revenue</label>
-      </fieldset>
-        <p><button type="submit">Add stream</button></p>
-      </form>
-    </dialog>
-  </main>
-  <script>
-    const money = (n) => '$' + n.toLocaleString('en-US');
-    const load = () =>
-      fetch('/api/streams')
-        .then((r) => r.json())
-        .then((streams) => {
-          document.getElementById('streams').innerHTML = streams
-            .map((s) => `<tr><td>${s.name}</td><td class="num">${money(s.monthly)}</td><td><button class="quiet" data-remove="${s.id}">Remove</button></td></tr>`)
-            .join('');
-        });
-    load();
-    document.getElementById('add').addEventListener('click', () => {
-      document.getElementById('dlg').showModal();
-    });
-    document.getElementById('stream').addEventListener('submit', () => {
-      fetch('/api/streams', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          name: document.getElementById('name').value,
-          monthly: Number(document.getElementById('monthly').value || 0),
-          pricing: document.querySelector('input[name=pricing]:checked').value,
-        }),
-      }).then(load);
-    });
-    document.getElementById('streams').addEventListener('click', (e) => {
-      const id = e.target.dataset.remove;
-      if (id) fetch('/api/streams/' + id, { method: 'DELETE' }).then(load);
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme — Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script>
+      if (!localStorage.getItem("acme-authed")) location.replace("/login");
+    </script>
+  </head>
+  <body>
+    <header>
+      <span class="brand">Acme</span>
+      <a href="/dashboard" aria-current="page">Forecast</a>
+      <a href="/settings">Settings</a>
+    </header>
+    <main>
+      <h1>Dashboard</h1>
+      <section>
+        <h2>Revenue streams</h2>
+        <p id="loading" role="status">Loading revenue streams…</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Stream</th>
+              <th class="num">Per month</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="streams"></tbody>
+        </table>
+        <p><button id="add">Add revenue stream</button></p>
+      </section>
+      <dialog id="dlg" aria-labelledby="dlg-title">
+        <h2 id="dlg-title">Add revenue stream</h2>
+        <form id="stream" method="dialog">
+          <label for="name">Name</label>
+          <input id="name" type="text" required />
+          <label for="monthly">Per month</label>
+          <input id="monthly" type="text" inputmode="numeric" placeholder="0" />
+          <fieldset>
+            <legend>Pricing model</legend>
+            <label
+              ><input type="radio" name="pricing" value="unit" checked /> Unit
+              sales</label
+            >
+            <label
+              ><input type="radio" name="pricing" value="hours" /> Billable
+              hours</label
+            >
+            <label
+              ><input type="radio" name="pricing" value="recurring" /> Recurring
+              revenue</label
+            >
+          </fieldset>
+          <p><button type="submit">Add stream</button></p>
+        </form>
+      </dialog>
+      <!-- lab:forecast-actions -->
+    </main>
+    <script type="module" src="/lab.js"></script>
+    <script>
+      const money = (n) => "$" + n.toLocaleString("en-US");
+      const escapeHtml = (value) =>
+        String(value).replace(
+          /[&<>"']/g,
+          (char) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[char],
+        );
+      const load = () => {
+        document.getElementById("loading").hidden = false;
+        return fetch("/api/streams")
+          .then((r) => r.json())
+          .then((streams) => {
+            document.getElementById("streams").innerHTML = streams
+              .map(
+                (s) =>
+                  `<tr><td>${escapeHtml(s.name)}</td><td class="num">${money(s.monthly)}</td><td><button class="quiet" data-remove="${s.id}">Remove</button></td></tr>`,
+              )
+              .join("");
+          })
+          .finally(() => {
+            document.getElementById("loading").hidden = true;
+          });
+      };
+      load();
+      document.getElementById("add").addEventListener("click", () => {
+        document.getElementById("dlg").showModal();
+      });
+      document.getElementById("stream").addEventListener("submit", () => {
+        fetch("/api/streams", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            name: document.getElementById("name").value,
+            monthly: Number(document.getElementById("monthly").value || 0),
+            pricing: document.querySelector("input[name=pricing]:checked")
+              .value,
+          }),
+        }).then(load);
+      });
+      document.getElementById("streams").addEventListener("click", (e) => {
+        const id = e.target.dataset.remove;
+        if (id) fetch("/api/streams/" + id, { method: "DELETE" }).then(load);
+      });
+    </script>
+  </body>
 </html>

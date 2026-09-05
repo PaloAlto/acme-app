@@ -1,0 +1,47 @@
+[
+  {
+    "id": "rename-control",
+    "message": "Forecast: rename Add revenue stream to New revenue stream",
+    "expected": "Forecast instructions and captures should follow the new button and dialog label; the workflow is unchanged.",
+    "edits": [
+      {
+        "file": "src/pages/dashboard.html",
+        "before": "Add revenue stream",
+        "after": "New revenue stream",
+        "count": 2
+      }
+    ]
+  },
+  {
+    "id": "forecast-export",
+    "message": "Forecast: export revenue streams as a CSV file",
+    "expected": "Forecast documentation should explain the new Export forecast CSV action and downloaded columns.",
+    "edits": [
+      {
+        "file": "src/pages/dashboard.html",
+        "before": "<!-- lab:forecast-actions -->",
+        "after": "<!-- lab:forecast-actions -->\n    <p><button id=\"export-forecast\">Export forecast CSV</button></p>\n    <script type=\"module\">\n      document.getElementById('export-forecast').addEventListener('click', async () => {\n        const streams = await fetch('/api/streams').then((response) => response.json());\n        const cell = (value) => {\n          const text = String(value);\n          const safe = /^[=+@\\-\\t\\r]/.test(text) ? \"'\" + text : text;\n          return '\"' + safe.replaceAll('\"', '\"\"') + '\"';\n        };\n        const csv = [['Stream', 'Pricing model', 'Per month'], ...streams.map((stream) => [stream.name, stream.pricing, stream.monthly])].map((row) => row.map(cell).join(',')).join('\\r\\n') + '\\r\\n';\n        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));\n        const link = document.createElement('a');\n        link.href = url;\n        link.download = 'forecast.csv';\n        link.click();\n        setTimeout(() => URL.revokeObjectURL(url), 1000);\n      });\n    </script>",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "internal-refactor",
+    "message": "Forecast: clarify the currency formatter name without changing behavior",
+    "expected": "The mapped file changes, but visible behavior and screenshots do not. No documentation rewrite should be proposed.",
+    "edits": [
+      {
+        "file": "src/pages/dashboard.html",
+        "before": "const money =",
+        "after": "const formatMoney =",
+        "count": 1
+      },
+      {
+        "file": "src/pages/dashboard.html",
+        "before": "${money(s.monthly)}",
+        "after": "${formatMoney(s.monthly)}",
+        "count": 1
+      }
+    ]
+  }
+]

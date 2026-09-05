@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: acme-stage
+  cancel-in-progress: false
 permissions:
   id-token: write
   contents: read
@@ -17,6 +20,13 @@ jobs:
       SERVICE: acme
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm check
       - uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
@@ -28,6 +38,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
+          build-args: ACME_COMMIT_SHA=${{ github.sha }}
           platforms: linux/arm64
           push: true
           tags: |
