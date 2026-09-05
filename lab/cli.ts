@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import {
   mkdirSync,
+  existsSync,
   readFileSync,
   writeFileSync,
   readdirSync,
@@ -54,7 +55,7 @@ const save = (run: Run) =>
     JSON.stringify(run, null, 2) + "\n",
   );
 const allRuns = (): Run[] =>
-  readdirSync(runs)
+  (existsSync(runs) ? readdirSync(runs) : [])
     .filter((name) => name.endsWith(".json"))
     .sort()
     .map((name) => JSON.parse(readFileSync(join(runs, name), "utf8")));
@@ -215,10 +216,10 @@ const option = (name: string) => {
   const at = args.indexOf(name);
   return at < 0 ? undefined : args[at + 1];
 };
-mkdirSync(runs, { recursive: true });
 let locked = false;
 try {
   if (["apply", "restore", "publish", "observe"].includes(command)) {
+    mkdirSync(runs, { recursive: true });
     try {
       mkdirSync(join(lab, "lock"));
       locked = true;
