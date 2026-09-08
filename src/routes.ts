@@ -4,7 +4,7 @@
  */
 export type Route = {
   path: string;
-  page: "login" | "dashboard" | "settings" | "lab";
+  page: "login" | "dashboard" | "expenses" | "settings" | "lab";
   title: string;
   /** Redirects to /login without a session. */
   signedIn: boolean;
@@ -15,5 +15,6 @@ export const routes: Route[] = [
   { path: "/login", page: "login", title: "Log in", signedIn: false },
   { path: "/", page: "dashboard", title: "Dashboard", signedIn: true },
   { path: "/dashboard", page: "dashboard", title: "Dashboard", signedIn: true },
+  { path: "/expenses", page: "expenses", title: "Expenses", signedIn: true },
   { path: "/settings", page: "settings", title: "Settings", signedIn: true },
 ];

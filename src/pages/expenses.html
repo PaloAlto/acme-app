@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Acme — Dashboard</title>
+    <title>Acme — Expenses</title>
     <link rel="stylesheet" href="/styles.css" />
     <script>
       if (!localStorage.getItem("acme-authed")) location.replace("/login");
@@ -12,57 +12,64 @@
   <body>
     <header>
       <span class="brand">Acme</span>
-      <a href="/dashboard" aria-current="page">Forecast</a>
-      <a href="/expenses">Expenses</a>
+      <a href="/dashboard">Forecast</a>
+      <a href="/expenses" aria-current="page">Expenses</a>
       <a href="/settings">Settings</a>
     </header>
     <main>
-      <h1>Dashboard</h1>
+      <h1>Expenses</h1>
       <section>
-        <h2>Revenue streams</h2>
-        <p id="loading" role="status">Loading revenue streams…</p>
+        <h2>Monthly expenses</h2>
+        <p id="loading" role="status">Loading expenses…</p>
         <table>
           <thead>
             <tr>
-              <th>Stream</th>
+              <th>Expense</th>
+              <th>Category</th>
               <th class="num">Per month</th>
               <th></th>
             </tr>
           </thead>
-          <tbody id="streams"></tbody>
+          <tbody id="expenses"></tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+              <th></th>
+              <th class="num" id="total"></th>
+              <th></th>
+            </tr>
+          </tfoot>
         </table>
-        <p><button id="add">Add revenue stream</button></p>
+        <p><button id="add">Add expense</button></p>
       </section>
       <dialog id="dlg" aria-labelledby="dlg-title">
-        <h2 id="dlg-title">Add revenue stream</h2>
-        <form id="stream" method="dialog">
+        <h2 id="dlg-title">Add expense</h2>
+        <form id="expense" method="dialog">
           <label for="name">Name</label>
           <input id="name" type="text" required />
           <label for="monthly">Per month</label>
           <input id="monthly" type="text" inputmode="numeric" placeholder="0" />
-          <fieldset>
-            <legend>Pricing model</legend>
-            <label
-              ><input type="radio" name="pricing" value="unit" checked /> Unit
-              sales</label
-            >
-            <label
-              ><input type="radio" name="pricing" value="hours" /> Billable
-              hours</label
-            >
-            <label
-              ><input type="radio" name="pricing" value="recurring" /> Recurring
-              revenue</label
-            >
-          </fieldset>
-          <p><button type="submit">Add stream</button></p>
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="office" selected>Office</option>
+            <option value="people">People</option>
+            <option value="software">Software</option>
+            <option value="other">Other</option>
+          </select>
+          <p><button type="submit">Add expense</button></p>
         </form>
       </dialog>
-      <!-- lab:forecast-actions -->
+      <!-- lab:expense-actions -->
     </main>
     <script type="module" src="/lab.js"></script>
     <script>
       const money = (n) => "$" + n.toLocaleString("en-US");
+      const categories = {
+        office: "Office",
+        people: "People",
+        software: "Software",
+        other: "Other",
+      };
       const escapeHtml = (value) =>
         String(value).replace(
           /[&<>"']/g,
@@ -77,15 +84,18 @@
         );
       const load = () => {
         document.getElementById("loading").hidden = false;
-        return fetch("/api/streams")
+        return fetch("/api/expenses")
           .then((r) => r.json())
-          .then((streams) => {
-            document.getElementById("streams").innerHTML = streams
+          .then((expenses) => {
+            document.getElementById("expenses").innerHTML = expenses
               .map(
-                (s) =>
-                  `<tr><td>${escapeHtml(s.name)}</td><td class="num">${money(s.monthly)}</td><td><button class="quiet" data-remove="${s.id}">Remove</button></td></tr>`,
+                (e) =>
+                  `<tr><td>${escapeHtml(e.name)}</td><td>${categories[e.category] ?? escapeHtml(e.category)}</td><td class="num">${money(e.monthly)}</td><td><button class="quiet" data-remove="${e.id}">Remove</button></td></tr>`,
               )
               .join("");
+            document.getElementById("total").textContent = money(
+              expenses.reduce((sum, e) => sum + e.monthly, 0),
+            );
           })
           .finally(() => {
             document.getElementById("loading").hidden = true;
@@ -95,21 +105,20 @@
       document.getElementById("add").addEventListener("click", () => {
         document.getElementById("dlg").showModal();
       });
-      document.getElementById("stream").addEventListener("submit", () => {
-        fetch("/api/streams", {
+      document.getElementById("expense").addEventListener("submit", () => {
+        fetch("/api/expenses", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             name: document.getElementById("name").value,
             monthly: Number(document.getElementById("monthly").value || 0),
-            pricing: document.querySelector("input[name=pricing]:checked")
-              .value,
+            category: document.getElementById("category").value,
           }),
         }).then(load);
       });
-      document.getElementById("streams").addEventListener("click", (e) => {
+      document.getElementById("expenses").addEventListener("click", (e) => {
         const id = e.target.dataset.remove;
-        if (id) fetch("/api/streams/" + id, { method: "DELETE" }).then(load);
+        if (id) fetch("/api/expenses/" + id, { method: "DELETE" }).then(load);
       });
     </script>
   </body>

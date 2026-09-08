@@ -17,9 +17,17 @@ type Stream = {
   pricing: "unit" | "hours" | "recurring";
   monthly: number;
 };
+type Expense = {
+  id: number;
+  name: string;
+  category: "office" | "people" | "software" | "other";
+  monthly: number;
+};
 type Session = {
   streams: Stream[];
   nextId: number;
+  expenses: Expense[];
+  nextExpenseId: number;
   modal: boolean;
   modalSeen: boolean;
   delay: number;
@@ -29,10 +37,17 @@ const fixture = (): Stream[] => [
   { id: 1, name: "Wholesale", pricing: "unit", monthly: 14200 },
   { id: 2, name: "Retail", pricing: "unit", monthly: 9850 },
 ];
+const expenseFixture = (): Expense[] => [
+  { id: 1, name: "Office lease", category: "office", monthly: 3200 },
+  { id: 2, name: "Payroll", category: "people", monthly: 18400 },
+  { id: 3, name: "Accounting software", category: "software", monthly: 90 },
+];
 const sessions = new Map<string, Session>();
 const fresh = (): Session => ({
   streams: fixture(),
   nextId: 3,
+  expenses: expenseFixture(),
+  nextExpenseId: 4,
   modal: false,
   modalSeen: false,
   delay: 0,
@@ -187,7 +202,13 @@ export const server = createServer(async (req, res) => {
     }
     if (url.pathname === "/api/lab/reset") {
       if (!method(req, res, ["POST"])) return;
-      Object.assign(state, { streams: fixture(), nextId: 3, modalSeen: false });
+      Object.assign(state, {
+        streams: fixture(),
+        nextId: 3,
+        expenses: expenseFixture(),
+        nextExpenseId: 4,
+        modalSeen: false,
+      });
       json(res, { ok: true });
       return;
     }
@@ -239,6 +260,52 @@ export const server = createServer(async (req, res) => {
       if (!method(req, res, ["DELETE"])) return;
       const at = state.streams.findIndex((s) => s.id === Number(removing[1]));
       if (at >= 0) state.streams.splice(at, 1);
+      json(res, { ok: at >= 0 });
+      return;
+    }
+    if (url.pathname === "/api/expenses") {
+      if (!method(req, res, ["GET", "POST"])) return;
+      if (req.method === "POST") {
+        const given = await body(req);
+        if (
+          typeof given.name !== "string" ||
+          !given.name.trim() ||
+          given.name.length > 100 ||
+          !["office", "people", "software", "other"].includes(
+            String(given.category),
+          ) ||
+          typeof given.monthly !== "number" ||
+          !Number.isFinite(given.monthly)
+        ) {
+          json(
+            res,
+            { error: "Supply a name, category, and finite monthly amount" },
+            400,
+          );
+          return;
+        }
+        const expense: Expense = {
+          id: state.nextExpenseId++,
+          name: given.name.trim(),
+          category: given.category as Expense["category"],
+          monthly: given.monthly,
+        };
+        state.expenses.push(expense);
+        json(res, expense, 201);
+        return;
+      }
+      if (state.delay)
+        await new Promise((resolve) => setTimeout(resolve, state.delay));
+      json(res, state.expenses);
+      return;
+    }
+    const removingExpense = /^\/api\/expenses\/(\d+)$/.exec(url.pathname);
+    if (removingExpense) {
+      if (!method(req, res, ["DELETE"])) return;
+      const at = state.expenses.findIndex(
+        (e) => e.id === Number(removingExpense[1]),
+      );
+      if (at >= 0) state.expenses.splice(at, 1);
       json(res, { ok: at >= 0 });
       return;
     }
